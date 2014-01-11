@@ -158,7 +158,7 @@ basepoint (1571054894184995387535939749894317568645297350402905821437625
 On Montgomery curves, curves of the form y^2=x^3+Ax^2+x, the typical technique is
 to work over the Kummer curve instead, i.e. drop y coordinates for use in
 Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2), (X_3,Z_3) be coordinates such that
-X_i/Z_i is the x-coordinate of the ith multiple of P for some point.
+X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x coordinates of P, Q, and P+Q respectively.
 .nf
      A = X2+Z2
      AA = A^2
@@ -175,8 +175,8 @@ X_i/Z_i is the x-coordinate of the ith multiple of P for some point.
      Z4 = E*(BB+a24*E)
 .fi
 
-gives X_i/Z_i as the x coordinate of P_i for i in {4,5}
-where a24*4=A+2.
+gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x coordinate
+of P+[2]Q.
 
 In impelmentations which make use of this trick, there is no need to
 validate the x coordinate as the twist is also secure. This is the prefered
@@ -272,7 +272,14 @@ standard, and this standard is no exception.
 IANA should assign OIDs to these curves.
 
 .ti 0
-7. References
+7. Acknowledgements
+
+Thanks to Alyssa Rowan and Robert Ransom for catching transcription and
+formula errors. Thanks to the various members of the CFRG who provided advice
+on the text.
+
+.ti 0
+8. References
 [BL07] Bernstein, Daniel J and Tanja Lange. ``Faster addition and doubling on
 elliptic curves.'' Pages 29-50 in Kurosawa, Advances in Cryptology:ASIACRYPT 2007. Lecture Notes in Computer Science 4833, Springer 2007.
 
