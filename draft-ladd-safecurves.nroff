@@ -92,7 +92,7 @@ Table of Contents
 
 This document contains a set of elliptic curves over prime fields with
 many security and performance advantages. They are twist-secure, have
-large prime order subgroups, high embedding degree, endomorphism rings
+large prime-order subgroups, high embedding degree, endomorphism rings
 of large discriminant, complete formulas, and primes selected for fast
 arithmetic.
 
@@ -108,8 +108,8 @@ short Weierstrass curves.
 .ti 0
 2. The Curves
 
-Each curve is given by an equation and a basepoint, together with an
-order of the point and cofactor.
+Each curve is given by an equation and a basepoint, together with the
+order of the point and the cofactor.
 
 Curve1174 is a curve over GF(2^251-9), formula x^2+y^2=1-1174x^2y^2,
 basepoint (158261909772591154195454700645373976338109
@@ -202,7 +202,7 @@ validate the x coordinate as the twist is also secure. This is the
 preferred way to implement ECDH. The formulas were introduced in
 [MONTGOMERY].
 
-On Edwards curves, curves of the form, x^2+y^2=1+dx^2y^2 a complete
+On Edwards curves, curves of the form x^2+y^2=1+dx^2y^2, a complete
 addition formula, which works for doubling as well, is given by
 representing points in projective coordinates. The formula for adding
 (X_1, Y_1, Z_1) to (X_2, Y_2, Z_2) is then
@@ -223,7 +223,8 @@ These formulas are from the [EFD], reporting results in [BL07].
 
 Using these formulas the standard double-and-add algorithm or
 Montgomery ladder recurrence can be used to compute multiples of
-points without side channels in a straightforward manner.
+points in a straightforward manner without vulnerability to timing
+attacks or attacks based on exceptional cases.
 
 Concretely, to calculate [n]P by double and add one lets Q_i=2Q_{i-1},
 then adds the points Q_i for which the relevant bit of n is set. To
@@ -240,13 +241,21 @@ technically working on the Kummer curve instead but there is no loss
 of security, nor a need to worry about the algebraic details implied.
 The above addition formulas cannot be used to add independent points
 on Montgomery curves, as they ignore the y coordinate
-entirely. Implementations using Montgomery form should set the high
-bit of their secret ECDH key to make the number of iterations
-constant.
+entirely.
 
 It is highly recommended that Edwards curve points are transmitted in
-compressed form to avoid implementations with missing curve membership
-checks from working.
+compressed form to prevent implementations with missing curve
+membership checks from working.
+
+The above algorithms are not the only algorithms possible. One can use
+alternative parametrizations such as inverted Edwards coordinates to
+make point operations cheaper, alternative algorithms such as radix-k
+or sliding window methods to reduce the number of additions and
+increase the number of doublings, and isogenies to transform
+Montgomery curves into Edwards curves to take advantage of these
+techniques. However, implementors should take care to avoid timing and
+cache side-channels when implementing these techniques. More
+information on some of these techniques is in [TWIST].
 
 .ti 0
 4. Point Encoding
@@ -283,9 +292,9 @@ attacks. These curves are twist-secure, limiting the impact of
 wrong-curve attacks on Montgomery ladders.
 
 It is recommended that implementors use the Montgomery ladder on
-Montgomery curves with x coordinate only to avoid side-channel attacks
-when Diffie-Hellman is being used. In this mode, curve checks are not
-required. On Edward curves, standard curve (but not group) membership
+Montgomery curves with x coordinate only to avoid timing attacks when
+Diffie-Hellman is being used. In this mode, curve checks are not
+required. On Edwards curves, standard curve (but not group) membership
 checks are required for ECDH to be secure. Implementors should
 generate ECDH private keys as multiples of the cofactor. While the
 impact of not doing so is slight, it should still be avoided.
@@ -314,7 +323,7 @@ and formula errors. Manuel Pegourie-Gonnard noticed suboptimal
 formulas and corrected them, as well as inadvertent misstatements and
 underspecifications. Thanks to the various members of the CFRG who
 provided advice on the text, and to Michael Hamburg for discussing
-adaption of the point encoding to Ed448-Goldilocks.
+adaptation of the point encoding to Ed448-Goldilocks.
 
 .ti 0
 8. References
@@ -329,7 +338,14 @@ Database. http://www.hyperelliptic.org/EFD/g1p/index.html
 methods of factorization''. Mathematics of Computation 48 (1987), 243-264.
 MR 88e:11130.
 
-[SAFECURVES] Berstein and Lange. Safecurves. safecurves.cr.yp.to
+[SAFECURVES] Berstein, Daniel J, and Tanja
+Lange. Safecurves. safecurves.cr.yp.to
+
+[TWIST] Bernstein, Daniel J, Peter Birkner, Marc Joye, Tanja Lange,
+and Christiane Peters. ``Twisted Edwards Curves''. In Vaudany, Serg.
+Avances in Cryptology:AFRICACRYPT 2008. Lecture Notes in Computer
+Science 5023.  Preprint from http://eprint.iacr.org/2008/013.pdf
+ 
 .ti 0
 Author's Address
 .nf
