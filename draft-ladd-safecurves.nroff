@@ -256,15 +256,14 @@ addition.
 
 Let (x,y) be a point on E(GF_p), where E is an Edwards Curve. Let
 l=floor[log(p)/log(256)]+1. A point is represented as l bytes, l
-representing in big-endian radix 256 the minimal representative of [x]
+representing in big-endian radix 256 the minimal representative of [y]
 modulo p, and the top bit of the top byte set to equal the low bit of
-x. Note that as the primes of these curves are all slightly lower than
-a power of two, this top bit is never required for the minimal
-representative, and so can indicate the parity of x. This
-representation is injective from points.
+x. Because we have always ensured that there is extra room in l than
+is strictly reqired to represent y, we have room for the top bit to be
+set.
 
-To decompress points one computes y^2, and the two possible candidates
-for y, then selects one using the additional bit.
+To decompress points one computes x^2, and the two possible candidates
+for x, then selects one using the additional bit.
 
 Alternative encodings are used by existing software, and protocol
 designers should be aware of this. Alternative encodings may be
