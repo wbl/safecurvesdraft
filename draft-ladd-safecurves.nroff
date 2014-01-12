@@ -94,7 +94,8 @@ This document contains a set of elliptic curves over prime fields with
 many security and performance advantages. They are twist-secure, have
 large prime-order subgroups, high embedding degree, endomorphism rings
 of large discriminant, complete formulas, and primes selected for fast
-arithmetic.
+arithmetic. The reader who wishes to learn more about these properties
+and their necessity is refered to [SILVERMAN].
 
 These curves have been generated in a rigid manner by computer
 search. As such there is very little risk that these curves were
@@ -323,13 +324,14 @@ and formula errors. Manuel Pegourie-Gonnard noticed suboptimal
 formulas and corrected them, as well as inadvertent misstatements and
 underspecifications. Thanks to the various members of the CFRG who
 provided advice on the text, and to Michael Hamburg for discussing
-adaptation of the point encoding to Ed448-Goldilocks.
+adaptation of the point encoding to Ed448-Goldilocks. Jeff "=JeffH" Hodges
+recommended Silverman as a reference.
 
 .ti 0
 8. References
 
 [BL07] Bernstein, Daniel J and Tanja Lange. ``Faster addition and doubling on
-elliptic curves.'' Pages 29-50 in Kurosawa, Advances in Cryptology:ASIACRYPT 2007. Lecture Notes in Computer Science 4833, Springer 2007.
+elliptic curves.'' Pages 29-50 in Kurosawa, Advances in Cryptology:ASIACRYPT 2007. Lecture Notes in Computer Science 4833, Springer-Verlag Berlin, 2007.
 
 [EFD] Lange, Tanja. Explicit Formula
 Database. http://www.hyperelliptic.org/EFD/g1p/index.html
@@ -341,10 +343,14 @@ MR 88e:11130.
 [SAFECURVES] Berstein, Daniel J, and Tanja
 Lange. Safecurves. safecurves.cr.yp.to
 
+[SILVERMAN] Silverman, Joseph H. The Arithmetic of Elliptic Curves, GTM 106.
+Springer-Verlag Berlin,  2009.
+
 [TWIST] Bernstein, Daniel J, Peter Birkner, Marc Joye, Tanja Lange,
 and Christiane Peters. ``Twisted Edwards Curves''. In Vaudany, Serg.
 Avances in Cryptology:AFRICACRYPT 2008. Lecture Notes in Computer
-Science 5023.  Preprint from http://eprint.iacr.org/2008/013.pdf
+Science 5023. Springer-Verlag, Berlin 2008.
+Preprint from http://eprint.iacr.org/2008/013.pdf
  
 .ti 0
 Author's Address
