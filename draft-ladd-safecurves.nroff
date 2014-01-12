@@ -114,51 +114,68 @@ Curve1174 is a curve over GF(2^251-9), formula x^2+y^2=1-1174x^2y^2,
 basepoint (158261909772591154195454700645373976338109
 1388846394833492296309729998839514,
 30375380136041545047641157286514376465
-19513534305223422754827055689195992590), order  2^249 - 11332719920821432534773113288178349711, cofactor 4.
+19513534305223422754827055689195992590), order 2^249 -
+11332719920821432534773113288178349711, cofactor 4.
 
-Curve25519 is a curve over GF(2^255-19), formula y^2=x^3+486662x^2+x, basepoint (9, 147816194475895447910205935684099868872646
-06134616475288964881837755586237401),
-order 2^252 + 27742317777372353535851937790883648493, cofactor 8.
+Curve25519 is a curve over GF(2^255-19), formula y^2=x^3+486662x^2+x,
+basepoint (9, 147816194475895447910205935684099868872646
+06134616475288964881837755586237401), order 2^252 +
+27742317777372353535851937790883648493, cofactor 8.
 
 E382 is a curve over GF(2^382-105), formula x^2+y^2=1-67254x^2y^2,
 basepoint (3914921414754292646847594472454013487047
 137431784830634731377862923477302047857640522480241
-298429278603678181725699,
-17),
-order 2^380 - 1030303207694556153926491950732314247062623204330168346855,
-cofactor 4.
+298429278603678181725699, 17), order 2^380 -
+1030303207694556153926491950732314247062623204330168346855, cofactor
+4.
 
 M383 is a curve over GF(2^383-187), formula y^2=x^3+2065150x^2+x,
 basepoint (12,
 473762340189175399766054630037590257683961716725770372563038
-9791524463565757299203154901655432096558642117242906494), order 2^380 + 166236275931373516105219794935542153308039234455761613271, cofactor 8.
+9791524463565757299203154901655432096558642117242906494), order 2^380
++ 166236275931373516105219794935542153308039234455761613271, cofactor
+8.
 
 Curve3617 is a curve over GF(2^414-17), formula x^2+y^2=1+3617x^2y^2,
-basepoint (17319886477121189177719202498822615443556957307604340815256226
-171904769976866975908866528699294134494857887698432266169206165,
-34), order 2^411 - 33364140863755142520810177694098385178984727200411208589594759, cofactor 8.
+basepoint
+(17319886477121189177719202498822615443556957307604340815256226
+171904769976866975908866528699294134494857887698432266169206165, 34),
+order 2^411 -
+33364140863755142520810177694098385178984727200411208589594759,
+cofactor 8.
+
+Ed448-Goldilocks is a curve over GF(2^448-2^224-1), formula
+x^2+y^2=1-39081x^2y^2, basepoint
+(117812161263436946737282484343310064665180535357016373416879082147939
+404277809514858788439644911793978499419995990477371552926308078495,
+19), order 2^446 -
+13818066809895115352007386748515426880336692474882178609894547503885,
+cofactor 4.
 
 M511 is a curve over GF(2^511-187), formula y^2 = x^3+530438x^2+x,
 basepoint (5,
 25004106455650724233689811491392132522115686851736085900709792642
 48275228603899706950518127817176591878667784247582124505430745177
-116625808811349787373477), order 2^508 + 107247547596357476240445315140681218420707566274348330289655408
+116625808811349787373477), order 2^508 +
+107247547596357476240445315140681218420707566274348330289655408
 08827675062043, cofactor 8.
 
 E521 is a curve over GF(2^521-1), formula x^2+y^2=1-376014x^2y^2,
-basepoint (1571054894184995387535939749894317568645297350402905821437625
+basepoint
+(1571054894184995387535939749894317568645297350402905821437625
 18115230499438118852963259119606760410077267392791511426719338990
-5003276673749012051148356041324,
-12), order 2^519 - 3375547632585017057891076304187826360719049612140512266186351500
+5003276673749012051148356041324, 12), order 2^519 -
+3375547632585017057891076304187826360719049612140512266186351500
 85779108655765, cofactor 4.
 
 .ti 0
 3. Explicit Formulas
 
-On Montgomery curves, curves of the form y^2=x^3+Ax^2+x, the typical technique is
-to work over the Kummer curve instead, i.e. drop y coordinates for use in
-Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2), (X_3,Z_3) be coordinates such that
-X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x coordinates of P, Q, and P+Q respectively.
+On Montgomery curves, curves of the form y^2=x^3+Ax^2+x, the typical
+technique is to work over the Kummer curve instead, i.e. drop y
+coordinates for use in Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2),
+(X_3,Z_3) be coordinates such that X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x
+coordinates of P, Q, and P+Q respectively.
 .nf
      A = X2+Z2
      AA = A^2
@@ -175,12 +192,13 @@ X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x coordinates of P, Q, and P+Q respectively.
      Z4 = E*(BB+a24*E)
 .fi
 
-gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x coordinate
-of P+[2]Q.
+gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x
+coordinate of P+[2]Q.
 
 In impelmentations which make use of this trick, there is no need to
-validate the x coordinate as the twist is also secure. This is the prefered
-way to implement ECDH. The formulas were introduced in [MONTGOMERY].
+validate the x coordinate as the twist is also secure. This is the
+prefered way to implement ECDH. The formulas were introduced in
+[MONTGOMERY].
 
 On Edwards curves, curves of the form, x^2+y^2=1+dx^2y^2 a complete
 addition formula, which works for doubling as well, is given by
@@ -205,11 +223,22 @@ Using these formulas the standard double-and-add algorithm or
 Montgomery ladder recurrence can be used to compute multiples of
 points without side channels in a straightfoward manner.
 
+Concretely, to calculate [n]P by double and add one lets Q_i=2Q_{i-1},
+then adds the points Q_i for which the relevant bit of n is set. To
+compute [n]P by the Montgomery ladder, one recurvisely [n+1]P, [n]P
+from [floor(n/2)+1]P, [floor(n/2)]P. The initial P is reused as the
+difference in all invocations of the differential add and double
+primative.  This recursive method can be recast as an iterative one
+easily.
+
 The Montgomery curve formulas require only the x coordinate. Protocols
 based on ECDH should give strong consideration to transmitting only
 the x coordinate, in which case no validation is required. The above
-addition formulas cannot be used to add points on Montgomery curves,
-as they ignore the y coordinate entirely.
+addition formulas cannot be used to add independent points on
+Montgomery curves, as they ignore the y coordinate
+entirely. Implementations using Montgomery form should set the high
+bit of their secret ECDH key to make the number of iterations
+constant.
 
 It is highly recommended that Edwards curve points are transmitted in
 compressed form to avoid implementations with missing curve membership
@@ -219,20 +248,23 @@ checks from working.
 4. Point Encoding
 
 Let (x,y) be a point on M(GF_p), where M is a Montgomery curve. Then
-let l=8*ceil[log(p)/log(256)]. A point is represented as l-bytes,
+let l=ceil[log(p)/log(256)]. A point is represented as l-bytes,
 representing in big-endian radix 256 the minimal representative of [x]
 modulo p. This representation works for the standard x-coordinate only
 arithmetic for ECDH, but cannot be used for protocols requiring
 addition.
 
 Let (x,y) be a point on E(GF_p), where E is an Edwards Curve. Let
-l=ceil[log(p)/log(256)]. A point is represented as l bytes, l
+l=floor[log(p)/log(256)]+1. A point is represented as l bytes, l
 representing in big-endian radix 256 the minimal representative of [x]
 modulo p, and the top bit of the top byte set to equal the low bit of
 x. Note that as the primes of these curves are all slightly lower than
 a power of two, this top bit is never required for the minimal
 representative, and so can indicate the parity of x. This
 representation is injective from points.
+
+To decompress points one computes y^2, and the two possible candidates
+for y, then selects one using the additional bit.
 
 Alternative encodings are used by existing software, and protocol
 designers should be aware of this. Alternative encodings may be
@@ -250,10 +282,10 @@ wrong-curve attacks on Montgomery ladders.
 It is recommended that implementors use the Montgomery ladder on
 Montgomery curves with x coordinate only to avoid side-channel attacks
 when Diffie-Hellman is being used. In this mode, curve checks are not
-required. Otherwise standard curve (but not group) membership checks
-are required for ECDH to be secure. Implementors should generate
-ECDH private keys as multiples of the cofactor. While the impact of
-not doing so is slight, it should still be avoided.
+required. On Edward curves, standard curve (but not group) membership
+checks are required for ECDH to be secure. Implementors should
+generate ECDH private keys as multiples of the cofactor. While the
+impact of not doing so is slight, it should still be avoided.
 
 These curves and cited formulas are complete, avoiding certain attacks
 against naive implementations of ECC protocols. They have cofactor
@@ -274,9 +306,12 @@ IANA should assign OIDs to these curves.
 .ti 0
 7. Acknowledgements
 
-Thanks to Alyssa Rowan and Robert Ransom for catching transcription and
-formula errors. Thanks to the various members of the CFRG who provided advice
-on the text.
+Thanks to Alyssa Rowan and Robert Ransom for catching transcription
+and formula errors. Manuel Pegourie-Gonnard noticed suboptimal
+formulas and corrected them, as well as inadvertant mistatements and
+underspecifications. Thanks to the various members of the CFRG who
+provided advice on the text, and to Michael Hamburg for discussing
+adaption of the point encoding to Ed448-Goldilocks.
 
 .ti 0
 8. References
