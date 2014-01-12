@@ -81,9 +81,10 @@ Table of Contents
    1. Introduction ....................................................3
    2. The curves ......................................................3
    3. Explicit Formulas ...............................................4
-   4. Security Considerations .........................................5
-   5. IANA Actions ....................................................6
-
+   4. Point Encoding ..................................................6
+   5. Security Considerations .........................................6
+   6. IANA Considerations .............................................7
+   7. Acknowledgements ................................................7
 .fi
 .in 3 
 .ti 0
@@ -146,8 +147,9 @@ cofactor 8.
 
 Ed448-Goldilocks is a curve over GF(2^448-2^224-1), formula
 x^2+y^2=1-39081x^2y^2, basepoint
-(117812161263436946737282484343310064665180535357016373416879082147939
-404277809514858788439644911793978499419995990477371552926308078495,
+(1178121612634369467372824843433100646651805353570163734168790821
+47939404277809514858788439644911793978499419995990477371552926
+308078495,
 19), order 2^446 -
 13818066809895115352007386748515426880336692474882178609894547503885,
 cofactor 4.
@@ -175,7 +177,7 @@ On Montgomery curves, curves of the form y^2=x^3+Ax^2+x, the typical
 technique is to work over the Kummer curve instead, i.e. drop y
 coordinates for use in Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2),
 (X_3,Z_3) be coordinates such that X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x
-coordinates of P, Q, and P+Q respectively.
+coordinates of P, Q, and P+Q respectively. Then the equations
 .nf
      A = X2+Z2
      AA = A^2
@@ -193,11 +195,11 @@ coordinates of P, Q, and P+Q respectively.
 .fi
 
 gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x
-coordinate of P+[2]Q.
+coordinate of P+[2]Q where a24=(A+2)/4. 
 
-In impelmentations which make use of this trick, there is no need to
+In implementations which make use of this trick, there is no need to
 validate the x coordinate as the twist is also secure. This is the
-prefered way to implement ECDH. The formulas were introduced in
+preferred way to implement ECDH. The formulas were introduced in
 [MONTGOMERY].
 
 On Edwards curves, curves of the form, x^2+y^2=1+dx^2y^2 a complete
@@ -221,21 +223,23 @@ These formulas are from the [EFD], reporting results in [BL07].
 
 Using these formulas the standard double-and-add algorithm or
 Montgomery ladder recurrence can be used to compute multiples of
-points without side channels in a straightfoward manner.
+points without side channels in a straightforward manner.
 
 Concretely, to calculate [n]P by double and add one lets Q_i=2Q_{i-1},
 then adds the points Q_i for which the relevant bit of n is set. To
-compute [n]P by the Montgomery ladder, one recurvisely [n+1]P, [n]P
-from [floor(n/2)+1]P, [floor(n/2)]P. The initial P is reused as the
-difference in all invocations of the differential add and double
-primative.  This recursive method can be recast as an iterative one
-easily.
+compute [n]P by the Montgomery ladder, one recursively computes
+[n+1]P, [n]P from [floor(n/2)+1]P, [floor(n/2)]P. The initial P is
+reused as the difference in all invocations of the differential add
+and double primitive.  This recursive method can be recast as an
+iterative one easily.
 
 The Montgomery curve formulas require only the x coordinate. Protocols
 based on ECDH should give strong consideration to transmitting only
-the x coordinate, in which case no validation is required. The above
-addition formulas cannot be used to add independent points on
-Montgomery curves, as they ignore the y coordinate
+the x coordinate, in which case no validation is required. One is
+technically working on the Kummer curve instead but there is no loss
+of security, nor a need to worry about the algebraic details implied.
+The above addition formulas cannot be used to add independent points
+on Montgomery curves, as they ignore the y coordinate
 entirely. Implementations using Montgomery form should set the high
 bit of their secret ECDH key to make the number of iterations
 constant.
@@ -259,7 +263,7 @@ l=floor[log(p)/log(256)]+1. A point is represented as l bytes, l
 representing in big-endian radix 256 the minimal representative of [y]
 modulo p, and the top bit of the top byte set to equal the low bit of
 x. Because we have always ensured that there is extra room in l than
-is strictly reqired to represent y, we have room for the top bit to be
+is strictly required to represent y, we have room for the top bit to be
 set.
 
 To decompress points one computes x^2, and the two possible candidates
@@ -303,17 +307,18 @@ standard, and this standard is no exception.
 IANA should assign OIDs to these curves.
 
 .ti 0
-7. Acknowledgements
+7. Acknowledgments
 
 Thanks to Alyssa Rowan and Robert Ransom for catching transcription
 and formula errors. Manuel Pegourie-Gonnard noticed suboptimal
-formulas and corrected them, as well as inadvertant mistatements and
+formulas and corrected them, as well as inadvertent misstatements and
 underspecifications. Thanks to the various members of the CFRG who
 provided advice on the text, and to Michael Hamburg for discussing
 adaption of the point encoding to Ed448-Goldilocks.
 
 .ti 0
 8. References
+
 [BL07] Bernstein, Daniel J and Tanja Lange. ``Faster addition and doubling on
 elliptic curves.'' Pages 29-50 in Kurosawa, Advances in Cryptology:ASIACRYPT 2007. Lecture Notes in Computer Science 4833, Springer 2007.
 
@@ -331,3 +336,4 @@ Author's Address
 Watson Ladd
 watsonbladd@gmail.com
 Berkeley, CA
+
