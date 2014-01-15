@@ -70,8 +70,9 @@ to this document.
 .ti 0
 Abstract          \"  See: "Instructions to RFC Authors [RFC2223BIS]"
 
-This Internet draft contains curves on which Decisional Diffie-Hellman
-problem is hard, and which have implementation advantages.
+This Internet Draft explains the mathematics behind and the parameters
+of a new family of elliptic curves with efficiency and security advantages
+over existing and widely deployed mechanisms.
 
 .bp
 .in 0
@@ -105,9 +106,161 @@ circumstances has been picked to enable highly efficient
 arithmetic. Proofs of all properties claimed exist in [SAFECURVES]. It
 is easier to avoid known implementation issues with these curves then
 short Weierstrass curves.
+.ti 0
+3. Explicit Formulas
+
+Let p be a prime number. There is a unique field with p elements.
+Its elements can be represented as the set of integers {0, 1, ... p}.
+Fields have three operations: addition, multiplication, and multiplicative
+and additive inverses. They have two distinguished elements: 0, and 1.
+
+To add two numbers, a and b, one computes the integer a+b, and takes
+the remainder on division by p.
+
+To multiply two numbers a and b, one computes a*b, and takes the remainder
+on division by p.
+
+Algorithms are in [COHEN].
+
+To compute the additive inverse of a, one can compute (p-1)*a, and again
+take the remainder.
+
+To compute the multiplicative inverse of a, written a^(-1) the best
+way to avoid side channel attacks is to calculate a^(p-2), reducing
+each intermediate product modulo p. To take exponents efficiently, one
+uses a square-and-multiply algorithm, i.e. compute a^{2n+1} as
+a*(a^{n})^2, a^{2n} as (a^{n})^2. The multiplicative inverse of 0 is
+undefined.
+
+0+a=a for all a. a*1=a for all a. a*a^{-1}=1 for all a nonzero.
+
+The field with p elements is denoted GF(p).
+
+An abelian group is a set S with two operations: addition and inverse,
+denoted + and unary - respectively, and a distinguished element
+e. a+e=e+a=a, a+-a=e, and addition is commutative.
+
+[n]a is defined as [0]a=e, [n]a=a+[n-1]a for n a positive integer,
+and extended by taking [-1]a=-a to negative integers.
+
+Given an element of an abelian group a in A, the order of a is
+the smallest positive integer n such that [n]a=e. The cofactor of a
+is the size of A divided by the order of a. By a classical theorem of
+Lagrange the cofactor is an integer.
+
+The remainder of this standard defines abelian groups in which for
+a fixed basepoint (denoted p), distinguishing between (g, [a]p, [b]p, [ab]p)
+with a, b picked uniformly at random from nonnegative integers less then
+the order, and (g, [a]g, [b]g, [c]g), is hard without spending prohibitive
+amounts of time. The time required is the square root of the order of g.
+
+These groups are defined over the set of points with coordinates x and y
+satisfying a given equation. They are different from the short Weierstrass
+equations found in many standards.
+
+On any abelian group if we take the sets {a, -a} with a ranging over A,
+we no longer have a well defined addition. However, we still have a well
+defined multiplication by n map, as -([n]a)=[-n]a. In the context
+of abelian varieties, this is called "taking the Kummer variety"
+
+On Montgomery curves, curves of the form y^2=x^3+Ax^2+x, the typical
+technique is to work over the Kummer curve instead, i.e. drop y
+coordinates for use in Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2),
+(X_3,Z_3) be coordinates such that X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x
+coordinates of P, Q, and P+Q respectively. Then the equations
+.nf
+     A = X2+Z2
+     AA = A^2
+     B = X2 - Z2
+     BB = B^2
+     E = AA - BB
+     C = X3 + Z3
+     D = X3 - Z3
+     DA = D*A
+     CB = C*B
+     X5 = Z1*(DA+CB)^2
+     Z5 = X1*(DA-CB)^2
+     X4 = AA*BB
+     Z4 = E*(BB+a24*E)
+.fi
+
+gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x
+coordinate of P+[2]Q where a24=(A+2)/4.  If in calculating [n](X, Z),
+Z of the result is zero, this indicates that [n](X,Z) is the point
+at infinity, and so the result has x-coordinate 0.
+
+These equations originally appeared in [MONTGOMERY].
+
+To use this to calculate multiplication on the Kummer curve, the following
+routine will work.
+
+On Edwards curves, curves of the form x^2+y^2=1+dx^2y^2, a complete
+addition formula, which works for doubling as well, is given by
+representing points in projective coordinates. The formula for adding
+(X_1, Y_1, Z_1) to (X_2, Y_2, Z_2) is then
+.nf
+      A = Z1*Z2
+      B = A^2
+      C = X1*X2
+      D = Y1*Y2
+      E = d*C*D
+      F = B-E
+      G = B+E
+      X3 = A*F*((X1+Y1)*(X2+Y2)-C-D) 
+      Y3 = A*G*(D-C)
+      Z3 = F * G
+.fi
+
+These formulas are from the [EFD], reporting results in [BL07].
+Every point on an Edwards curve can be represented, so Z=0 does not
+occur.
+
+Concretely, to calculate [n]P by double and add one lets Q_i=2Q_{i-1},
+then adds the points Q_i for which the relevant bit of n is set.
+Alternative algorithms can be used such as radix-k methods, but they
+should be implemented to avoid side-channels.
+
+The Montgomery curve formulas require only the x coordinate. Protocols
+based on ECDH should give strong consideration to transmitting only
+the x coordinate, in which case no validation is required. One is
+technically working on the Kummer curve instead but there is no loss
+of security, nor a need to worry about the algebraic details implied.
+The above addition formulas cannot be used to add independent points
+on Montgomery curves, as they ignore the y coordinate
+entirely.
+
+It is highly recommended that Edwards curve points are transmitted in
+compressed form to prevent implementations with missing curve
+membership checks from working.
+
+The above algorithms are not the only algorithms possible. One can use
+alternative parametrizations such as inverted Edwards coordinates to
+make point operations cheaper, alternative algorithms such as radix-k
+or sliding window methods to reduce the number of additions and
+increase the number of doublings, and isogenies to transform
+Montgomery curves into Edwards curves to take advantage of these
+techniques. However, implementors should take care to avoid timing and
+cache side-channels when implementing these techniques. More
+information on some of these techniques is in [TWIST].
 
 .ti 0
 2. The Curves
+
+These curves were selectd as follows: first a field was picked which
+because of its form permits specialized, faster arithemetic. Then
+the curve shape was selected, either Edwards or Montgomery. Lastly,
+a computer search was made for the smallest parameter that would let the
+curve satisfy security criteria.
+
+Since the field GF(p) has no subfields, Weil restriction is not a concern.
+The curves not only needed to have a large prime order subgroup, but the
+quadratic twist of the curve needed to as well. The curves also had to
+satisfy equations prohibiting the existence of bilinear maps into small fields
+as well as have no efficiently evaluatable endomorphisms beyond the
+negation map.
+
+Because of the curve shapes being used, exceptional cases are less of
+an issue 
 
 Each curve is given by an equation and a basepoint, together with the
 order of the point and the cofactor.
@@ -170,93 +323,6 @@ basepoint
 5003276673749012051148356041324, 12), order 2^519 -
 3375547632585017057891076304187826360719049612140512266186351500
 85779108655765, cofactor 4.
-
-.ti 0
-3. Explicit Formulas
-
-On Montgomery curves, curves of the form y^2=x^3+Ax^2+x, the typical
-technique is to work over the Kummer curve instead, i.e. drop y
-coordinates for use in Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2),
-(X_3,Z_3) be coordinates such that X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x
-coordinates of P, Q, and P+Q respectively. Then the equations
-.nf
-     A = X2+Z2
-     AA = A^2
-     B = X2 - Z2
-     BB = B^2
-     E = AA - BB
-     C = X3 + Z3
-     D = X3 - Z3
-     DA = D*A
-     CB = C*B
-     X5 = Z1*(DA+CB)^2
-     Z5 = X1*(DA-CB)^2
-     X4 = AA*BB
-     Z4 = E*(BB+a24*E)
-.fi
-
-gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x
-coordinate of P+[2]Q where a24=(A+2)/4. 
-
-In implementations which make use of this trick, there is no need to
-validate the x coordinate as the twist is also secure. This is the
-preferred way to implement ECDH. The formulas were introduced in
-[MONTGOMERY].
-
-On Edwards curves, curves of the form x^2+y^2=1+dx^2y^2, a complete
-addition formula, which works for doubling as well, is given by
-representing points in projective coordinates. The formula for adding
-(X_1, Y_1, Z_1) to (X_2, Y_2, Z_2) is then
-.nf
-      A = Z1*Z2
-      B = A^2
-      C = X1*X2
-      D = Y1*Y2
-      E = d*C*D
-      F = B-E
-      G = B+E
-      X3 = A*F*((X1+Y1)*(X2+Y2)-C-D) 
-      Y3 = A*G*(D-C)
-      Z3 = F * G
-.fi
-
-These formulas are from the [EFD], reporting results in [BL07].
-
-Using these formulas the standard double-and-add algorithm or
-Montgomery ladder recurrence can be used to compute multiples of
-points in a straightforward manner without vulnerability to timing
-attacks or attacks based on exceptional cases.
-
-Concretely, to calculate [n]P by double and add one lets Q_i=2Q_{i-1},
-then adds the points Q_i for which the relevant bit of n is set. To
-compute [n]P by the Montgomery ladder, one recursively computes
-[n+1]P, [n]P from [floor(n/2)+1]P, [floor(n/2)]P. The initial P is
-reused as the difference in all invocations of the differential add
-and double primitive.  This recursive method can be recast as an
-iterative one easily.
-
-The Montgomery curve formulas require only the x coordinate. Protocols
-based on ECDH should give strong consideration to transmitting only
-the x coordinate, in which case no validation is required. One is
-technically working on the Kummer curve instead but there is no loss
-of security, nor a need to worry about the algebraic details implied.
-The above addition formulas cannot be used to add independent points
-on Montgomery curves, as they ignore the y coordinate
-entirely.
-
-It is highly recommended that Edwards curve points are transmitted in
-compressed form to prevent implementations with missing curve
-membership checks from working.
-
-The above algorithms are not the only algorithms possible. One can use
-alternative parametrizations such as inverted Edwards coordinates to
-make point operations cheaper, alternative algorithms such as radix-k
-or sliding window methods to reduce the number of additions and
-increase the number of doublings, and isogenies to transform
-Montgomery curves into Edwards curves to take advantage of these
-techniques. However, implementors should take care to avoid timing and
-cache side-channels when implementing these techniques. More
-information on some of these techniques is in [TWIST].
 
 .ti 0
 4. Point Encoding
