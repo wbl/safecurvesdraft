@@ -20,7 +20,7 @@
 Internet Draft                                                   W. Ladd
 <draft-ladd-safecurves-03.txt>                              Grad Student
 Category: Informational                                      UC Berkeley
-Expires 14 July 2014                                     10 January 2014
+Expires 19 July 2014                                     15 January 2014
 
 .ce
 Additional Elliptic Curves for IETF protocols
@@ -80,12 +80,13 @@ Table of Contents
 
 .nf
    1. Introduction ....................................................3
-   2. The curves ......................................................3
-   3. Explicit Formulas ...............................................4
-   4. Point Encoding ..................................................6
-   5. Security Considerations .........................................6
-   6. IANA Considerations .............................................7
-   7. Acknowledgements ................................................7
+   2. Explicit Formulas ...............................................3
+   3. The Curves ......................................................6
+   4. Point Encoding ..................................................9
+   5. Security Considerations .........................................9
+   6. IANA Considerations .............................................9
+   7. Acknowledgements ................................................9
+   8. References .....................................................10
 .fi
 .in 3 
 .ti 0
@@ -107,7 +108,7 @@ arithmetic. Proofs of all properties claimed exist in [SAFECURVES]. It
 is easier to avoid known implementation issues with these curves then
 short Weierstrass curves.
 .ti 0
-3. Explicit Formulas
+2. Explicit Formulas
 
 Let p be a prime number. There is a unique field with p elements.
 Its elements can be represented as the set of integers {0, 1, ... p}.
@@ -161,10 +162,28 @@ equations found in many standards.
 On any abelian group if we take the sets {a, -a} with a ranging over A,
 we no longer have a well defined addition. However, we still have a well
 defined multiplication by n map, as -([n]a)=[-n]a. In the context
-of abelian varieties, this is called "taking the Kummer variety"
+of abelian varieties, this is called "taking the Kummer variety",
+and the set of subset is the Kummer variety.
 
-On Montgomery curves, curves of the form y^2=x^3+Ax^2+x, the typical
-technique is to work over the Kummer curve instead, i.e. drop y
+To take the Kummer variety of an elliptic curve in the form
+y^2=x^3+Ax^2+x, an Edwards curve, one drops the y coordinate.
+
+The elliptic-curve Diffie-Hellman key agreement protocol on a curve
+with basepoint g of cofactor h and order q is as follows:
+
+Alice picks a random integer a from the range [1,q-1], computes
+[a*h]g, and transmits it to Bob.
+
+Bob picks a random integer b from the range [1,q-1], computes
+[b*h]g, and transmits it to Alice.
+
+Both Alice and Bob determine [a*b*h^2]g, Alice as [a*h]([b*h]g), and
+likewise for Bob. This can be hashed to give a short shared secret.
+
+This protocol will work on a Kummer variety as well.
+
+On Montgomery curves, curves of the form y^2=x^3+a*x^2+x, the typical
+technique is to work over the Kummer variety instead, i.e. drop y
 coordinates for use in Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2),
 (X_3,Z_3) be coordinates such that X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x
 coordinates of P, Q, and P+Q respectively. Then the equations
@@ -185,17 +204,39 @@ coordinates of P, Q, and P+Q respectively. Then the equations
 .fi
 
 gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x
-coordinate of P+[2]Q where a24=(A+2)/4.  If in calculating [n](X, Z),
+coordinate of P+[2]Q where a24=(a+2)/4.  If in calculating [n](X, Z),
 Z of the result is zero, this indicates that [n](X,Z) is the point
 at infinity, and so the result has x-coordinate 0.
 
 These equations originally appeared in [MONTGOMERY].
 
-To use this to calculate multiplication on the Kummer curve, the following
-routine will work.
+To use this to calculate multiplication on the Kummer variety, the
+following routine will work to calculate [n]P, given the x coordinate
+of P, if [n]P is not the identity of the group. For ECDH this routine is
+adequate as returning 0 for the identity is acceptable and does not lose
+security.
 
-On Edwards curves, curves of the form x^2+y^2=1+dx^2y^2, a complete
-addition formula, which works for doubling as well, is given by
+1: Intilize P_0=[0,1], and P_1=[x_P,1]
+2: Iterate over the bits of n from most to least significant
+2.1: If the bit is 0, let P_1=P_1+P_0, P_0=2P_0
+2.2: If the bit is 1, let P_0=P_1+P_0, P_1=2P_1
+3: Write [x_f, z_f]=P_0
+4: If z_f is 0, return 0. Otherwise return x_f/z_f.
+
+Note that the difference between P_1 and P_0 is always [x_P, 1], so the
+differential addition formula above suffices. In implementing the above
+algorithm the conditionals should be implemented by means of constant time
+conditional swaps rather than jumps to avoid timing and control flow
+attacks. n should be represented with a fixed number of bits to further
+minimize timing information. Skipping intial zeros is a terrible idea.
+
+When using this algorithm, no checks on the x coordinate are required
+for the Montgomery curves in this standard: they are designed to
+resist all attacks that involve transmitting an invalid x coordinate
+in the above algorithm.
+
+On (twisted) Edwards curves, curves of the form a*x^2+y^2=1+d*x^2y^2, a
+complete addition formula, which works for doubling as well, is given by
 representing points in projective coordinates. The formula for adding
 (X_1, Y_1, Z_1) to (X_2, Y_2, Z_2) is then
 .nf
@@ -207,31 +248,21 @@ representing points in projective coordinates. The formula for adding
       F = B-E
       G = B+E
       X3 = A*F*((X1+Y1)*(X2+Y2)-C-D) 
-      Y3 = A*G*(D-C)
+      Y3 = A*G*(D-a*C)
       Z3 = F * G
 .fi
 
 These formulas are from the [EFD], reporting results in [BL07].
 Every point on an Edwards curve can be represented, so Z=0 does not
-occur.
+occur. This formula can be used for doubling also by letting (X_1,Y_1,Z_1)=
+(X_2,Y_2,Z_2). For most of the curves with the exception of T25519 a=1,
+saving a multiplication.
 
-Concretely, to calculate [n]P by double and add one lets Q_i=2Q_{i-1},
-then adds the points Q_i for which the relevant bit of n is set.
-Alternative algorithms can be used such as radix-k methods, but they
-should be implemented to avoid side-channels.
-
-The Montgomery curve formulas require only the x coordinate. Protocols
-based on ECDH should give strong consideration to transmitting only
-the x coordinate, in which case no validation is required. One is
-technically working on the Kummer curve instead but there is no loss
-of security, nor a need to worry about the algebraic details implied.
-The above addition formulas cannot be used to add independent points
-on Montgomery curves, as they ignore the y coordinate
-entirely.
-
-It is highly recommended that Edwards curve points are transmitted in
-compressed form to prevent implementations with missing curve
-membership checks from working.
+The Montgomery ladder algorithm from above will work with this addition
+and doubling, taking care to represent points as triples, and check that
+points lie on the curve going into and out of the routine. To convert
+from projective coordinates one takes x=X/Z, y=Y/Z, and to convert
+affine to projective one takes (x,y,1).
 
 The above algorithms are not the only algorithms possible. One can use
 alternative parametrizations such as inverted Edwards coordinates to
@@ -240,17 +271,21 @@ or sliding window methods to reduce the number of additions and
 increase the number of doublings, and isogenies to transform
 Montgomery curves into Edwards curves to take advantage of these
 techniques. However, implementors should take care to avoid timing and
-cache side-channels when implementing these techniques. More
+cache side-channels when implementing any of these techniques. More
 information on some of these techniques is in [TWIST].
 
 .ti 0
-2. The Curves
+3. The Curves
 
 These curves were selectd as follows: first a field was picked which
 because of its form permits specialized, faster arithemetic. Then
 the curve shape was selected, either Edwards or Montgomery. Lastly,
 a computer search was made for the smallest parameter that would let the
 curve satisfy security criteria.
+
+One curve, T25519, is isomorphic to Curve25519 but is not of the above form.
+It is included because of the desire for a curve of size approximately
+2^250 on which addition makes sense for use in signature schemes.
 
 Since the field GF(p) has no subfields, Weil restriction is not a concern.
 The curves not only needed to have a large prime order subgroup, but the
@@ -260,7 +295,7 @@ as well as have no efficiently evaluatable endomorphisms beyond the
 negation map.
 
 Because of the curve shapes being used, exceptional cases are less of
-an issue 
+an issue then with short Weierstrass curves.
 
 Each curve is given by an equation and a basepoint, together with the
 order of the point and the cofactor.
@@ -275,6 +310,11 @@ basepoint (158261909772591154195454700645373976338109
 Curve25519 is a curve over GF(2^255-19), formula y^2=x^3+486662x^2+x,
 basepoint (9, 147816194475895447910205935684099868872646
 06134616475288964881837755586237401), order 2^252 +
+27742317777372353535851937790883648493, cofactor 8.
+
+T25519 is a curve over GF(2^255-19) formula 121666x^2+y^2=1+121665x^2y^2,
+basepoint (6, 158858074951644465347792977535893721270128458670434237
+40362095615172183684671), order 2^252 +
 27742317777372353535851937790883648493, cofactor 8.
 
 E382 is a curve over GF(2^382-105), formula x^2+y^2=1-67254x^2y^2,
@@ -342,9 +382,8 @@ x. Because we have always ensured that there is extra room in l than
 is strictly required to represent y, we have room for the top bit to be
 set.
 
-To decompress points one computes x^2, and the two possible candidates
-for x, then selects one using the additional bit.
-
+Point encoding is clear in both cases. To decode a point on an Edwards
+curve with parameter d, one takes the y value and computes 
 Alternative encodings are used by existing software, and protocol
 designers should be aware of this. Alternative encodings may be
 useful if preexisting software is to be used without changes.
@@ -363,8 +402,9 @@ Montgomery curves with x coordinate only to avoid timing attacks when
 Diffie-Hellman is being used. In this mode, curve checks are not
 required. On Edwards curves, standard curve (but not group) membership
 checks are required for ECDH to be secure. Implementors should
-generate ECDH private keys as multiples of the cofactor. While the
-impact of not doing so is slight, it should still be avoided.
+pay attention to the cofactor in the discussion of ECDH in section 2, and
+avoid forgetting the cofactor. While the impact is slight, it should still
+be avoided.
 
 These curves and cited formulas are complete, avoiding certain attacks
 against naive implementations of ECC protocols. They have cofactor
@@ -386,18 +426,26 @@ IANA should assign OIDs to these curves.
 7. Acknowledgments
 
 Thanks to Alyssa Rowan and Robert Ransom for catching transcription
-and formula errors. Manuel Pegourie-Gonnard noticed suboptimal
-formulas and corrected them, as well as inadvertent misstatements and
-underspecifications. Thanks to the various members of the CFRG who
-provided advice on the text, and to Michael Hamburg for discussing
-adaptation of the point encoding to Ed448-Goldilocks. Jeff "=JeffH" Hodges
-recommended Silverman as a reference.
+and formula errors. Paul Lambert was the guinea pig for implemention
+guidelines. Paul Hoffman noticed the cofactor was missing. Manuel
+Pegourie-Gonnard noticed suboptimal formulas and corrected them, as
+well as inadvertent misstatements and underspecifications. Thanks to
+David McGrew for providing editorial support. Thanks to the various
+members of the CFRG who provided advice on the text, and to Michael
+Hamburg for discussing adaptation of the point encoding to
+Ed448-Goldilocks. Jeff "=JeffH" Hodges recommended Silverman as a
+reference.
 
 .ti 0
 8. References
 
-[BL07] Bernstein, Daniel J and Tanja Lange. ``Faster addition and doubling on
-elliptic curves.'' Pages 29-50 in Kurosawa, Advances in Cryptology:ASIACRYPT 2007. Lecture Notes in Computer Science 4833, Springer-Verlag Berlin, 2007.
+[BL07] Bernstein, Daniel J and Tanja Lange. ``Faster addition and
+doubling on elliptic curves.'' Pages 29-50 in Kurosawa, Advances in
+Cryptology:ASIACRYPT 2007. Lecture Notes in Computer Science 4833,
+Springer-Verlag Berlin, 2007.
+
+[COHEN] Cohen, Henri. A Course in Computational Algebraic Number
+Theory, GTM 138, Springer-Verlag, 1993.
 
 [EFD] Lange, Tanja. Explicit Formula
 Database. http://www.hyperelliptic.org/EFD/g1p/index.html
