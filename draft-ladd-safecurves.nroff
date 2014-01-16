@@ -107,11 +107,12 @@ circumstances has been picked to enable highly efficient
 arithmetic. Proofs of all properties claimed exist in [SAFECURVES]. It
 is easier to avoid known implementation issues with these curves then
 short Weierstrass curves.
+
 .ti 0
 2. Explicit Formulas
 
 Let p be a prime number. There is a unique field with p elements.
-Its elements can be represented as the set of integers {0, 1, ... p}.
+Its elements can be represented as the set of integers {0, 1, ... p-1}.
 Fields have three operations: addition, multiplication, and multiplicative
 and additive inverses. They have two distinguished elements: 0, and 1.
 
@@ -123,8 +124,9 @@ on division by p.
 
 Algorithms are in [COHEN].
 
-To compute the additive inverse of a, one can compute (p-1)*a, and again
-take the remainder.
+To compute the additive inverse of a, one can compute p-a, and again
+take the remainder. The remainder step is necessary because of the
+possibility of a=0.
 
 To compute the multiplicative inverse of a, written a^(-1) the best
 way to avoid side channel attacks is to calculate a^(p-2), reducing
@@ -149,15 +151,18 @@ the smallest positive integer n such that [n]a=e. The cofactor of a
 is the size of A divided by the order of a. By a classical theorem of
 Lagrange the cofactor is an integer.
 
-The remainder of this standard defines abelian groups in which for
-a fixed basepoint (denoted p), distinguishing between (g, [a]p, [b]p, [ab]p)
-with a, b picked uniformly at random from nonnegative integers less then
-the order, and (g, [a]g, [b]g, [c]g), is hard without spending prohibitive
-amounts of time. The time required is the square root of the order of g.
+The remainder of this standard defines abelian groups in which for a
+fixed basepoint (denoted p), distinguishing between (g, [a]p, [b]p,
+[ab]p) with a, b picked uniformly at random from nonnegative integers
+less then the order, and (g, [a]g, [b]g, [c]g) with c picked uniformly
+at random from nonnegative integers less then the order, is hard
+without spending prohibitive amounts of time. The time required is the
+square root of the order of g.
 
 These groups are defined over the set of points with coordinates x and y
 satisfying a given equation. They are different from the short Weierstrass
-equations found in many standards.
+equations found in many standards, and so require different implementation
+techniques.
 
 On any abelian group if we take the sets {a, -a} with a ranging over A,
 we no longer have a well defined addition. However, we still have a well
@@ -184,9 +189,9 @@ This protocol will work on a Kummer variety as well.
 
 On Montgomery curves, curves of the form y^2=x^3+a*x^2+x, the typical
 technique is to work over the Kummer variety instead, i.e. drop y
-coordinates for use in Diffie-Hellman. Let (X_1,Z_1), (X_2,Z_2),
-(X_3,Z_3) be coordinates such that X_1/Z_1, X_2/Z_2, X_3/Z_3 are the x
-coordinates of P, Q, and P+Q respectively. Then the equations
+coordinates for use in Diffie-Hellman. Let (X1,Z1), (X2,Z2),
+(X3,Z3) be coordinates such that X1/Z1, X2/Z2, X3/Z3 are the x
+coordinates of Q-P, P, and Q respectively. Then the equations
 .nf
      A = X2+Z2
      AA = A^2
@@ -203,8 +208,8 @@ coordinates of P, Q, and P+Q respectively. Then the equations
      Z4 = E*(BB+a24*E)
 .fi
 
-gives X_4/Z_4 as the x coordinate of [2]Q, and X_5/Z_5 as the x
-coordinate of P+[2]Q where a24=(a+2)/4.  If in calculating [n](X, Z),
+gives X4/Z4 as the x coordinate of [2]P, and X5/Z5 as the x
+coordinate of P+Q where a24=(a+2)/4.  If in calculating [n](X, Z),
 Z of the result is zero, this indicates that [n](X,Z) is the point
 at infinity, and so the result has x-coordinate 0.
 
@@ -215,20 +220,25 @@ following routine will work to calculate [n]P, given the x coordinate
 of P, if [n]P is not the identity of the group. For ECDH this routine is
 adequate as returning 0 for the identity is acceptable and does not lose
 security.
+.nf
+    1: Intilize P_0=[1,0], and P_1=[x_P,1]
+    2: Iterate over the bits of n from most to least significant
+       2.1: If the bit is 0, let P_1=P_1+P_0, P_0=2P_0
+       2.2: If the bit is 1, let P_0=P_1+P_0, P_1=2P_1
+    3: Write [x_f, z_f]=P_0
+    4: If z_f is 0, return 0. Otherwise return x_f/z_f.
+.fi
 
-1: Intilize P_0=[1,0], and P_1=[x_P,1]
-2: Iterate over the bits of n from most to least significant
-2.1: If the bit is 0, let P_1=P_1+P_0, P_0=2P_0
-2.2: If the bit is 1, let P_0=P_1+P_0, P_1=2P_1
-3: Write [x_f, z_f]=P_0
-4: If z_f is 0, return 0. Otherwise return x_f/z_f.
+Note that the difference between P_1 and P_0 is always [x_P, 1], so
+the differential addition formula above suffices and in fact Z1 the
+constant 1.  In implementing the above algorithm the conditionals
+should be implemented by means of constant time conditional swaps
+rather than jumps to avoid timing and control flow attacks. n should
+be represented with a fixed number of bits to further minimize timing
+information. Skipping initial zeros is a terrible idea.
 
-Note that the difference between P_1 and P_0 is always [x_P, 1], so the
-differential addition formula above suffices. In implementing the above
-algorithm the conditionals should be implemented by means of constant time
-conditional swaps rather than jumps to avoid timing and control flow
-attacks. n should be represented with a fixed number of bits to further
-minimize timing information. Skipping initial zeros is a terrible idea.
+The final division can be written as x_f*z_f^(p-1), which will
+be correct in all cases.
 
 When using this algorithm, no checks on the x coordinate are required
 for the Montgomery curves in this standard: they are designed to
@@ -238,7 +248,7 @@ in the above algorithm.
 On (twisted) Edwards curves, curves of the form a*x^2+y^2=1+d*x^2y^2, a
 complete addition formula, which works for doubling as well, is given by
 representing points in projective coordinates. The formula for adding
-(X_1, Y_1, Z_1) to (X_2, Y_2, Z_2) is then
+(X1, Y1, Z1) to (X2, Y2, Z2) is then
 .nf
       A = Z1*Z2
       B = A^2
@@ -254,8 +264,8 @@ representing points in projective coordinates. The formula for adding
 
 These formulas are from the [EFD], reporting results in [BL07].
 Every point on an Edwards curve can be represented, so Z=0 does not
-occur. This formula can be used for doubling also by letting (X_1,Y_1,Z_1)=
-(X_2,Y_2,Z_2). For most of the curves with the exception of T25519 a=1,
+occur. This formula can be used for doubling also by letting (X1,Y1,Z1)=
+(X2,Y2,Z2). For most of the curves with the exception of T25519 a=1,
 saving a multiplication.
 
 The Montgomery ladder algorithm from above will work with this addition
@@ -375,18 +385,23 @@ arithmetic for ECDH, but cannot be used for protocols requiring
 addition.
 
 Let (x,y) be a point on E(GF_p), where E is an Edwards curve or
-twisted Edwards curve. Let l=floor[log(p)/log(256)]+1. A point is
-represented as l bytes, l representing in big-endian radix 256 the
-minimal representative of [y] modulo p, and the top bit of the top
-byte set to equal the low bit of x. Because we have always ensured
-that there is extra room in l than is strictly required to represent
-y, we have room for the top bit to be set.
+twisted Edwards curve. Let l be the minimial number of bytes to
+represent a value of size up to p-1 with the top bit free. Concretely,
+if the next power of two above p is 256 to some power, we need an
+extra byte, otherwise we do not. . A point is represented as l bytes,
+l representing in big-endian radix 256 the minimal representative of
+[y] modulo p, and the top bit of the top byte set to equal the low bit
+of x. Because we have always ensured that there is extra room in l
+than is strictly required to represent y, we have room for the top bit
+to be set.
 
 Point encoding is clear in both cases. To decode a point on an Edwards
 curve with parameter d, one takes the y value and computes the
 valuex^2, then takes the square root. Methods for taking the square
 root are sadly highly prime-dependent, but [COHEN] contains a large
-number of options.
+number of options. If the square root does not exist, the encoding is
+invalid and no further operations should be performed with the provided
+data.
 
 Alternative encodings are used by existing software, and protocol
 designers should be aware of this. Alternative encodings may be
@@ -438,7 +453,7 @@ David McGrew for providing editorial support. Thanks to the various
 members of the CFRG who provided advice on the text, and to Michael
 Hamburg for discussing adaptation of the point encoding to
 Ed448-Goldilocks. Jeff "=JeffH" Hodges recommended Silverman as a
-reference.
+reference. Ilari Liusvaara noticed infelicities of language.
 
 .ti 0
 8. References
