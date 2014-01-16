@@ -166,7 +166,7 @@ of abelian varieties, this is called "taking the Kummer variety",
 and the set of subset is the Kummer variety.
 
 To take the Kummer variety of an elliptic curve in the form
-y^2=x^3+Ax^2+x, an Edwards curve, one drops the y coordinate.
+y^2=x^3+Ax^2+x, a Montgomery curve, one drops the y coordinate.
 
 The elliptic-curve Diffie-Hellman key agreement protocol on a curve
 with basepoint g of cofactor h and order q is as follows:
@@ -216,7 +216,7 @@ of P, if [n]P is not the identity of the group. For ECDH this routine is
 adequate as returning 0 for the identity is acceptable and does not lose
 security.
 
-1: Intilize P_0=[0,1], and P_1=[x_P,1]
+1: Intilize P_0=[1,0], and P_1=[x_P,1]
 2: Iterate over the bits of n from most to least significant
 2.1: If the bit is 0, let P_1=P_1+P_0, P_0=2P_0
 2.2: If the bit is 1, let P_0=P_1+P_0, P_1=2P_1
@@ -385,7 +385,7 @@ y, we have room for the top bit to be set.
 Point encoding is clear in both cases. To decode a point on an Edwards
 curve with parameter d, one takes the y value and computes the
 valuex^2, then takes the square root. Methods for taking the square
-root are sadly highly prime- dependent, but [COHEN] contains a large
+root are sadly highly prime-dependent, but [COHEN] contains a large
 number of options.
 
 Alternative encodings are used by existing software, and protocol
