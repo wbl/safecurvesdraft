@@ -85,7 +85,7 @@ Table of Contents
    4. Point Encoding ..................................................9
    5. Security Considerations .........................................9
    6. IANA Considerations .............................................9
-   7. Acknowledgements ................................................9
+   7. Acknowledgments ................................................9
    8. References .....................................................10
 .fi
 .in 3 
@@ -228,7 +228,7 @@ differential addition formula above suffices. In implementing the above
 algorithm the conditionals should be implemented by means of constant time
 conditional swaps rather than jumps to avoid timing and control flow
 attacks. n should be represented with a fixed number of bits to further
-minimize timing information. Skipping intial zeros is a terrible idea.
+minimize timing information. Skipping initial zeros is a terrible idea.
 
 When using this algorithm, no checks on the x coordinate are required
 for the Montgomery curves in this standard: they are designed to
@@ -265,7 +265,7 @@ from projective coordinates one takes x=X/Z, y=Y/Z, and to convert
 affine to projective one takes (x,y,1).
 
 The above algorithms are not the only algorithms possible. One can use
-alternative parametrizations such as inverted Edwards coordinates to
+alternative parameterizations such as inverted Edwards coordinates to
 make point operations cheaper, alternative algorithms such as radix-k
 or sliding window methods to reduce the number of additions and
 increase the number of doublings, and isogenies to transform
@@ -277,8 +277,8 @@ information on some of these techniques is in [TWIST].
 .ti 0
 3. The Curves
 
-These curves were selectd as follows: first a field was picked which
-because of its form permits specialized, faster arithemetic. Then
+These curves were selected as follows: first a field was picked which
+because of its form permits specialized, faster arithmetic. Then
 the curve shape was selected, either Edwards or Montgomery. Lastly,
 a computer search was made for the smallest parameter that would let the
 curve satisfy security criteria.
@@ -374,16 +374,20 @@ modulo p. This representation works for the standard x-coordinate only
 arithmetic for ECDH, but cannot be used for protocols requiring
 addition.
 
-Let (x,y) be a point on E(GF_p), where E is an Edwards Curve. Let
-l=floor[log(p)/log(256)]+1. A point is represented as l bytes, l
-representing in big-endian radix 256 the minimal representative of [y]
-modulo p, and the top bit of the top byte set to equal the low bit of
-x. Because we have always ensured that there is extra room in l than
-is strictly required to represent y, we have room for the top bit to be
-set.
+Let (x,y) be a point on E(GF_p), where E is an Edwards curve or
+twisted Edwards curve. Let l=floor[log(p)/log(256)]+1. A point is
+represented as l bytes, l representing in big-endian radix 256 the
+minimal representative of [y] modulo p, and the top bit of the top
+byte set to equal the low bit of x. Because we have always ensured
+that there is extra room in l than is strictly required to represent
+y, we have room for the top bit to be set.
 
 Point encoding is clear in both cases. To decode a point on an Edwards
-curve with parameter d, one takes the y value and computes 
+curve with parameter d, one takes the y value and computes the
+valuex^2, then takes the square root. Methods for taking the square
+root are sadly highly prime- dependent, but [COHEN] contains a large
+number of options.
+
 Alternative encodings are used by existing software, and protocol
 designers should be aware of this. Alternative encodings may be
 useful if preexisting software is to be used without changes.
@@ -426,7 +430,7 @@ IANA should assign OIDs to these curves.
 7. Acknowledgments
 
 Thanks to Alyssa Rowan and Robert Ransom for catching transcription
-and formula errors. Paul Lambert was the guinea pig for implemention
+and formula errors. Paul Lambert was the guinea pig for implementation
 guidelines. Paul Hoffman noticed the cofactor was missing. Manuel
 Pegourie-Gonnard noticed suboptimal formulas and corrected them, as
 well as inadvertent misstatements and underspecifications. Thanks to
@@ -473,3 +477,5 @@ Watson Ladd
 watsonbladd@gmail.com
 Berkeley, CA
 
+
+ LocalWords:  refered
